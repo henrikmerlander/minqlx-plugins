@@ -418,18 +418,18 @@ class balance(minqlx.Plugin):
                 teams["blue"].remove(p2)
                 teams["red"].remove(p1)
                 switch = self.suggest_switch(teams, gt)
-            avg_red = self.team_average(teams["red"], gt)
-            avg_blue = self.team_average(teams["blue"], gt)
-            diff_rounded = abs(round(avg_red) - round(avg_blue)) # Round individual averages.
-            if round(avg_red) > round(avg_blue):
+            tot_red = self.team_total(teams["red"], gt)
+            tot_blue = self.team_total(teams["blue"], gt)
+            diff_rounded = abs(round(tot_red) - round(tot_blue)) # Round individual totals.
+            if round(tot_red) > round(tot_blue):
                 self.msg("^1{} ^7vs ^4{}^7 - DIFFERENCE: ^1{}"
-                    .format(round(avg_red), round(avg_blue), diff_rounded))
-            elif round(avg_red) < round(avg_blue):
+                    .format(round(tot_red), round(tot_blue), diff_rounded))
+            elif round(tot_red) < round(tot_blue):
                 self.msg("^1{} ^7vs ^4{}^7 - DIFFERENCE: ^4{}"
-                    .format(round(avg_red), round(avg_blue), diff_rounded))
+                    .format(round(tot_red), round(tot_blue), diff_rounded))
             else:
                 self.msg("^1{} ^7vs ^4{}^7 - Holy shit!"
-                    .format(round(avg_red), round(avg_blue)))
+                    .format(round(tot_red), round(tot_blue)))
         else:
             channel.reply("Teams are good! Nothing to balance.")
         return True
@@ -460,19 +460,19 @@ class balance(minqlx.Plugin):
                 self.add_request(d, self.callback_teams, channel)
                 return
 
-        avg_red = self.team_average(teams["red"], gt)
-        avg_blue = self.team_average(teams["blue"], gt)
+        tot_red = self.team_total(teams["red"], gt)
+        tot_blue = self.team_total(teams["blue"], gt)
         switch = self.suggest_switch(teams, gt)
-        diff_rounded = abs(round(avg_red) - round(avg_blue)) # Round individual averages.
-        if round(avg_red) > round(avg_blue):
+        diff_rounded = abs(round(tot_red) - round(tot_blue)) # Round individual totals.
+        if round(tot_red) > round(tot_blue):
             channel.reply("^1{} ^7vs ^4{}^7 - DIFFERENCE: ^1{}"
-                .format(round(avg_red), round(avg_blue), diff_rounded))
-        elif round(avg_red) < round(avg_blue):
+                .format(round(tot_red), round(tot_blue), diff_rounded))
+        elif round(tot_red) < round(tot_blue):
             channel.reply("^1{} ^7vs ^4{}^7 - DIFFERENCE: ^4{}"
-                .format(round(avg_red), round(avg_blue), diff_rounded))
+                .format(round(tot_red), round(tot_blue), diff_rounded))
         else:
             channel.reply("^1{} ^7vs ^4{}^7 - Holy shit!"
-                .format(round(avg_red), round(avg_blue)))
+                .format(round(tot_red), round(tot_blue)))
 
         minimum_suggestion_diff = self.get_cvar("qlx_balanceMinimumSuggestionDiff", float)
         if switch and switch[1] >= minimum_suggestion_diff:
@@ -554,10 +554,10 @@ class balance(minqlx.Plugin):
             channel.reply(spec)
 
     def suggest_switch(self, teams, gametype):
-        """Suggest a switch based on average team ratings."""
-        avg_red = self.team_average(teams["red"], gametype)
-        avg_blue = self.team_average(teams["blue"], gametype)
-        cur_diff = abs(avg_red - avg_blue)
+        """Suggest a switch based on total team ratings."""
+        tot_red = self.team_total(teams["red"], gametype)
+        tot_blue = self.team_total(teams["blue"], gametype)
+        cur_diff = abs(tot_red - tot_blue)
         min_diff = 999999
         best_pair = None
 
@@ -569,9 +569,9 @@ class balance(minqlx.Plugin):
                 r.remove(red_p)
                 r.append(blue_p)
                 b.remove(blue_p)
-                avg_red = self.team_average(r, gametype)
-                avg_blue = self.team_average(b, gametype)
-                diff = abs(avg_red - avg_blue)
+                tot_red = self.team_total(r, gametype)
+                tot_blue = self.team_total(b, gametype)
+                diff = abs(tot_red - tot_blue)
                 if diff < min_diff:
                     min_diff = diff
                     best_pair = (red_p, blue_p)
@@ -580,6 +580,15 @@ class balance(minqlx.Plugin):
             return (best_pair, cur_diff - min_diff)
         else:
             return None
+
+    def team_total(self, team, gametype):
+        """Calculates the total rating of a team."""
+        tot = 0
+        if team:
+            for p in team:
+                tot += self.ratings[p.steam_id][gametype]["elo"]
+
+        return tot
 
     def team_average(self, team, gametype):
         """Calculates the average rating of a team."""
