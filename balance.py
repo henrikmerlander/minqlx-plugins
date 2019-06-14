@@ -372,9 +372,9 @@ class balance(minqlx.Plugin):
             return minqlx.RET_STOP_ALL
 
         teams = self.teams()
-        if len(teams["red"] + teams["blue"]) % 2 != 0:
-            player.tell("The total number of players should be an even number.")
-            return minqlx.RET_STOP_ALL
+        # if len(teams["red"] + teams["blue"]) % 2 != 0:
+        #     player.tell("The total number of players should be an even number.")
+        #     return minqlx.RET_STOP_ALL
         
         players = dict([(p.steam_id, gt) for p in teams["red"] + teams["blue"]])
         self.add_request(players, self.callback_balance, minqlx.CHAT_CHANNEL)
@@ -441,9 +441,9 @@ class balance(minqlx.Plugin):
             return minqlx.RET_STOP_ALL
         
         teams = self.teams()
-        if len(teams["red"]) != len(teams["blue"]):
-            player.tell("Both teams should have the same number of players.")
-            return minqlx.RET_STOP_ALL
+        # if len(teams["red"]) != len(teams["blue"]):
+        #     player.tell("Both teams should have the same number of players.")
+        #     return minqlx.RET_STOP_ALL
         
         teams = dict([(p.steam_id, gt) for p in teams["red"] + teams["blue"]])
         self.add_request(teams, self.callback_teams, channel)
